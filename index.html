@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="index.css">
     <meta charset="UTF-8">
     <title>VueProject</title>
 </head>
 <body>
 <div id="FirstDiv">
     <p>{{message}}</p>
+    <input type="button" v-on:click="a=!a" v-bind:class="change" value="change">
 </div>
+<script src="lib/D3/d3.js"></script>
 <script src="https://vuejs.org/js/vue.js"></script>
 <script src="JS/FirstVue.js"></script>
 </body>

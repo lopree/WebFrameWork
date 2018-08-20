@@ -1,0 +1,42 @@
+.enter {
+    text-align: left;
+    fill: green;
+}
+.update {
+    text-anchor: middle;
+    fill: #333;
+}
+.TextSVG {
+    top: 50%;
+    left: 5%;
+    border: 2px solid #ccc;
+    background: aliceblue;
+    position: absolute;
+}
+.TableSVG {
+    top: 0;
+    right: 0;
+    padding: 20px;
+    border: 1px solid black;
+    position: absolute;
+}
+.yAxisText {
+    fill: red;
+    font-size: 10px;
+    /*transform: rotate(-20deg);*/
+}
+.DataText {
+    fill: white;
+    text-anchor: middle;
+    font-size: 10px;
+}
+.changeColor{
+    background: brown;
+    color: #ffffff;
+}
+.changeWidth{
+    width: 200px;
+}
+
+
+
