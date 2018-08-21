@@ -8,11 +8,11 @@
 </head>
 
 <body>
-    <div id="UIDiv">
+    <div id="UIDiv" style="width: 310px;height: 100%;position: fixed">
         <p>{{message}}</p>
         <input type="button" v-on:click="a=!a" v-bind:class="change" value="change">
     </div>
-    <div id="3Div">
+    <div id="3Div" style="width:calc(100%-310px);height: 100%;left:310px;position: absolute">
     </div>
     <script src="lib/D3/d3.js">
     </script>
