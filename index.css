@@ -1,17 +1,26 @@
-#UIDiv{
+#UIDiv {
 
 }
-#3Div{
 
+#CustomHTML {
+    position: absolute;
+    border:0;
+    left:310px;
+    width: calc(100% - 310px);
+    height: 100%;
+    overflow: auto;
 }
+
 .enter {
     text-align: left;
     fill: green;
 }
+
 .update {
     text-anchor: middle;
     fill: #333;
 }
+
 .TextSVG {
     top: 50%;
     left: 5%;
@@ -19,6 +28,7 @@
     background: aliceblue;
     position: absolute;
 }
+
 .TableSVG {
     top: 0;
     right: 0;
@@ -26,21 +36,25 @@
     border: 1px solid black;
     position: absolute;
 }
+
 .yAxisText {
     fill: red;
     font-size: 10px;
     /*transform: rotate(-20deg);*/
 }
+
 .DataText {
     fill: white;
     text-anchor: middle;
     font-size: 10px;
 }
-.changeColor{
+
+.changeColor {
     background: brown;
     color: #ffffff;
 }
-.changeWidth{
+
+.changeWidth {
     width: 200px;
 }
 

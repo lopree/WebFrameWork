@@ -10,7 +10,7 @@ init();
 
 function init() {
     //container
-    container = document.getElementById('3Div');
+    container = document.createElement('div');
     document.body.appendChild(container);
     //camera and scene
     camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
