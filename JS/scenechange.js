@@ -8,7 +8,7 @@ let composer, outlinePass;
 let raycast = new THREE.Raycaster();
 let mouse = new THREE.Vector2();
 
-let selectedObjects = [];
+let intersects;
 
 let params = {
     edgeStrength: 3.0,
@@ -61,7 +61,6 @@ function init() {
         function (OBJ) {
             scene.add(OBJ.scene);
             let model = OBJ.scene;
-
             //获取动作
             mixer = new THREE.AnimationMixer(model);
             mixer.clipAction(OBJ.animations[0]).play();
@@ -74,7 +73,6 @@ function init() {
                     child.material.transparent = true;
                 }
             });
-            console.log(model.children);
             scene.add(model);
         });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -93,49 +91,44 @@ function init() {
     //下次渲染时，通过mouse对于的二维向量判断是否经过指定物体
 
     renderer.domElement.addEventListener('mousedown', mouseDown, false);
-    renderer.domElement.addEventListener('mousemove', onTouchMove);
-    renderer.domElement.addEventListener('touchmove', onTouchMove);
+    renderer.domElement.addEventListener('mousemove', mouseMove, false);
 }
 
 function onTouchMove(event) {
-    //转换坐标
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    let x, y;
 
-    checkIntersection();
-}
+    if (event.changedTouches) {
 
-function addSelectedObject(object) {
-
-    selectedObjects = [];
-    selectedObjects.push(object);
-
-}
-
-function checkIntersection() {
-    raycaster.setFromCamera(mouse, camera);
-
-    let intersects = raycaster.intersectObjects(scene.children[1].children, true);
-
-    if (intersects.length > 0) {
-        console.log(scene.children[1].children.object);
-        let selectedObject = scene.children[1].children.object;
-        addSelectedObject(selectedObject);
-        outlinePass.selectedObjects = selectedObjects;
+        x = event.changedTouches[0].pageX;
+        y = event.changedTouches[0].pageY;
 
     } else {
 
-        // outlinePass.selectedObjects = [];
+        x = event.clientX;
+        y = event.clientY;
 
     }
 
+    mouse.x = (x / window.innerWidth) * 2 - 1;
+    mouse.y = -(y / window.innerHeight) * 2 + 1;
+
+    raycast.setFromCamera(mouse, camera);
+    intersects = raycast.intersectObjects(scene.children[1].children);
+}
+
+function mouseMove(event) {
+    onTouchMove(event);
+    if (intersects.length > 0) {
+        console.log(123);
+    } else {
+
+    }
+    render();
 }
 
 //鼠标点击事件
 function mouseDown(event) {
-    event.preventDefault();
-    raycast.setFromCamera(mouse, camera);
-    let intersects = raycast.intersectObjects(scene.children[1].children);
+    onTouchMove(event);
     if (intersects.length > 0) {
         if (event.button === 0) {
             console.log('Click Me!');
@@ -160,7 +153,6 @@ function render() {
 
 //run GameLoop(renderer,update,repeat)
 function GameLoop() {
-
     render();
     requestAnimationFrame(GameLoop);
     composer.render();
