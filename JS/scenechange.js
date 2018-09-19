@@ -8,15 +8,25 @@ let composer, outlinePass;
 let raycast = new THREE.Raycaster();
 let mouse = new THREE.Vector2();
 
-let intersects;
+let intersects,selectedObjects = [];
 
 let params = {
     edgeStrength: 3.0,
-    edgeGlow: 0.0,
-    edgeThickness: 1.0,
+    edgeGlow: 1.0,
+    edgeThickness: 2.0,
     //是否闪烁
     pulsePeriod: 0
 };
+
+let Configuration = function () {
+
+    this.visibleEdgeColor = '#ff2f31';
+    this.hiddenEdgeColor = '#190a05';
+
+};
+let conf = new Configuration();
+
+
 
 init();
 GameLoop();
@@ -41,36 +51,41 @@ function init() {
         }
     );
 
-    //postprocessing
-    composer = new THREE.EffectComposer(renderer);
-    outlinePass = new THREE.OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), scene,
-        camera);
-    outlinePass.edgeStrength = params.edgeStrength;
-    outlinePass.edgeGlow = params.edgeGlow;
-    outlinePass.edgeThickness = params.edgeThickness;
-    outlinePass.pulsePeriod = params.pulsePeriod;
-    composer.addPass(outlinePass);
-
     let loader = new THREE.GLTFLoader();
     //设置GLTF模型的解压缩文件存放地址
     THREE.DRACOLoader.setDecoderPath('./draco');
     loader.setDRACOLoader(new THREE.DRACOLoader());
     loader.load(
         //模型地址
-        'Resources/ExampleModel02.gltf',
+        'Resources/ExampleModel.gltf',
         function (OBJ) {
             scene.add(OBJ.scene);
             let model = OBJ.scene;
+            let scale = 1.0;
             //获取动作
             mixer = new THREE.AnimationMixer(model);
             mixer.clipAction(OBJ.animations[0]).play();
             //cycle over materials
             model.traverse(child => {
                 //材质赋予
-                if (child.material) {
-                    child.material.needsUpdate = true;
-                    child.material.flatShading = false;
-                    child.material.transparent = true;
+                // if (child.material) {
+                //     child.material.needsUpdate = true;
+                //     child.material.flatShading = false;
+                //     child.material.transparent = true;
+                // }
+
+                if ( child instanceof THREE.Mesh ) {
+
+                    child.geometry.center();
+                    child.geometry.computeBoundingSphere();
+                    scale = 0.2 * child.geometry.boundingSphere.radius;
+
+                    let phongMaterial = new THREE.MeshPhongMaterial( { color: 0xffffff,
+                        specular: 0x111111, shininess: 5 } );
+                    child.material = phongMaterial;
+                    child.receiveShadow = true;
+                    child.castShadow = true;
+
                 }
             });
             scene.add(model);
@@ -87,6 +102,22 @@ function init() {
     controls.update();
     //窗口的自适应
     window.addEventListener('resize', onWindowResize, false);
+    //postprocessing
+    composer = new THREE.EffectComposer(renderer);
+    let renderPass = new THREE.RenderPass( scene, camera );
+    composer.addPass( renderPass );
+    outlinePass = new THREE.OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), scene,
+        camera);
+    outlinePass.edgeStrength = params.edgeStrength;
+    outlinePass.edgeGlow = params.edgeGlow;
+    outlinePass.edgeThickness = params.edgeThickness;
+    outlinePass.pulsePeriod = params.pulsePeriod;
+
+    outlinePass.visibleEdgeColor.set(conf.visibleEdgeColor);
+    outlinePass.hiddenEdgeColor.set( conf.hiddenEdgeColor );
+    composer.addPass(outlinePass);
+
+
     //添加光投射器 及 鼠标二维向量 用于捕获鼠标移入物体
     //下次渲染时，通过mouse对于的二维向量判断是否经过指定物体
 
@@ -116,10 +147,23 @@ function onTouchMove(event) {
     intersects = raycast.intersectObjects(scene.children[1].children);
 }
 
+function addSelectedObject( object ) {
+
+    selectedObjects = [];
+    selectedObjects.push( object );
+
+}
+
 function mouseMove(event) {
     onTouchMove(event);
     if (intersects.length > 0) {
-        console.log(123);
+        //Objects
+        console.log(scene.children[1].children);
+        //Object
+        console.log(intersects[0]);
+        let selectedObject = intersects[ 0 ].object;
+        addSelectedObject( selectedObject );
+        outlinePass.selectedObjects = addSelectedObject;
     } else {
 
     }
