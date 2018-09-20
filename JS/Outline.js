@@ -3,6 +3,7 @@ let camera, scene, renderer, controls;
 const raycaster = new THREE.Raycaster();
 
 const mouse = new THREE.Vector2();
+let intersects,ModelGroup;
 let selectedObjects = [];
 
 let composer, effectFXAA, outlinePass;
@@ -15,7 +16,6 @@ const params = {
     edgeGlow: 0.0,
     edgeThickness: 1.0,
     pulsePeriod: 0,
-    rotate: false,
     usePatternTexture: false
 };
 
@@ -46,8 +46,6 @@ gui.add(params, 'pulsePeriod', 0.0, 5).onChange(function (value) {
     outlinePass.pulsePeriod = Number(value);
 
 });
-
-gui.add(params, 'rotate');
 
 gui.add(params, 'usePatternTexture').onChange(function (value) {
 
@@ -87,10 +85,12 @@ function init() {
     const width = window.innerWidth;
     const height = window.innerHeight;
 
-    renderer = new THREE.WebGLRenderer();
+    renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.shadowMap.enabled = true;
-    // todo - support pixelRatio in this demo
     renderer.setSize(width, height);
+    renderer.gammaFactor = 2.2;
+    renderer.gammaOutput = true;
+    renderer.setPixelRatio(window.devicePixelRatio);
     document.body.appendChild(renderer.domElement);
 
     scene = new THREE.Scene();
@@ -117,7 +117,6 @@ function init() {
     loader.load('Resources/ExampleModel.gltf', function (object) {
         scene.add(object.scene);
         let scale = 1.0;
-
         object.traverse(function (child) {
 
             if (child instanceof THREE.Mesh) {
@@ -130,6 +129,7 @@ function init() {
                     color: 0xffffff,
                     specular: 0x111111, shininess: 5
                 });
+
                 child.material = phongMaterial;
                 child.receiveShadow = true;
                 child.castShadow = true;
@@ -147,12 +147,6 @@ function init() {
     scene.add(group);
 
     group.add(obj3d);
-
-    //
-
-    stats = new Stats();
-    container.appendChild(stats.dom);
-
     // postprocessing
 
     composer = new THREE.EffectComposer(renderer);
@@ -170,10 +164,11 @@ function init() {
     effectFXAA.renderToScreen = true;
     composer.addPass(effectFXAA);
 
-    window.addEventListener('resize', onWindowResize, false);
+    renderer.domElement.addEventListener('resize', onWindowResize, false);
 
-    window.addEventListener('mousemove', onTouchMove);
-    window.addEventListener('touchmove', onTouchMove);
+    renderer.domElement.addEventListener('mousemove', checkIntersection);
+    renderer.domElement.addEventListener('touchmove', checkIntersection);
+    renderer.domElement.addEventListener('mousedown', mouseDown, false);
 
     function onTouchMove(event) {
 
@@ -193,26 +188,25 @@ function init() {
 
         mouse.x = (x / window.innerWidth) * 2 - 1;
         mouse.y = -(y / window.innerHeight) * 2 + 1;
-
-        checkIntersection();
+        raycaster.setFromCamera(mouse, camera);
+        intersects = raycaster.intersectObjects([scene], true);
+        // checkIntersection();
 
     }
 
     function addSelectedObject(object) {
-
         selectedObjects = [];
         selectedObjects.push(object);
-
     }
 
-    function checkIntersection() {
+    function ShowHide(object){
+        ModelGroup = [];
+        ModelGroup.push(object.parent.parent.children);
+    }
 
-        raycaster.setFromCamera(mouse, camera);
-
-        const intersects = raycaster.intersectObjects([scene], true);
-
+    function checkIntersection(event) {
+        onTouchMove(event);
         if (intersects.length > 0) {
-
             const selectedObject = intersects[0].object;
             addSelectedObject(selectedObject);
             outlinePass.selectedObjects = selectedObjects;
@@ -221,6 +215,27 @@ function init() {
             // outlinePass.selectedObjects = [];
         }
     }
+
+    function mouseDown(event) {
+        onTouchMove(event);
+        if (intersects.length > 0) {
+            if (event.button === 0) {
+                //intersects[0].object.visible = false;
+                console.log(intersects[0].object.parent);
+                ShowHide(intersects[0].object);
+                console.log(ModelGroup[0]);
+                for (let i=0;i<ModelGroup[0].length;i++){
+                    if (ModelGroup[0][i]!==intersects[0].object.parent){
+                        console.log(ModelGroup[0][i]);
+                        ModelGroup[0][i].visible = false;
+                    }
+                }
+                camera.position.set(0,3,3);
+            }
+            render();
+        }
+    }
+
 }
 
 function onWindowResize() {
@@ -239,23 +254,13 @@ function onWindowResize() {
 }
 
 function animate() {
-
+    render();
     requestAnimationFrame(animate);
-
-    stats.begin();
-
-    const timer = performance.now();
-
-    if (params.rotate) {
-
-        group.rotation.y = timer * 0.0001;
-
-    }
-
     controls.update();
-
     composer.render();
+}
 
-    stats.end();
-
+function render() {
+    //THREE.GLTFLoader.Shaders.update(scene, camera);
+    renderer.render(scene, camera);
 }

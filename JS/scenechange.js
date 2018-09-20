@@ -91,7 +91,7 @@ function init() {
             scene.add(model);
         });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    //Gamma 设置
+    //Gamma 设置,直接影响场景的明亮程度
     renderer.gammaFactor = 2.2;
     renderer.gammaOutput = true;
     //模型分辨率设置，启用后自适应设备的分辨率
