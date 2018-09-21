@@ -3,7 +3,9 @@ let camera, scene, renderer, controls;
 const raycaster = new THREE.Raycaster();
 
 const mouse = new THREE.Vector2();
-let intersects,ModelGroup;
+//鼠标屏幕坐标
+let x, y;
+let intersects, ModelGroup;
 let selectedObjects = [];
 
 let composer, effectFXAA, outlinePass;
@@ -80,6 +82,8 @@ animate();
 function init() {
 
     container = document.createElement('div');
+    container.setAttribute("id", "ModelDiv");
+
     document.body.appendChild(container);
 
     const width = window.innerWidth;
@@ -169,10 +173,8 @@ function init() {
     renderer.domElement.addEventListener('mousemove', checkIntersection);
     renderer.domElement.addEventListener('touchmove', checkIntersection);
     renderer.domElement.addEventListener('mousedown', mouseDown, false);
-
+}
     function onTouchMove(event) {
-
-        let x, y;
 
         if (event.changedTouches) {
 
@@ -191,7 +193,6 @@ function init() {
         raycaster.setFromCamera(mouse, camera);
         intersects = raycaster.intersectObjects([scene], true);
         // checkIntersection();
-
     }
 
     function addSelectedObject(object) {
@@ -199,7 +200,7 @@ function init() {
         selectedObjects.push(object);
     }
 
-    function ShowHide(object){
+    function allModel(object) {
         ModelGroup = [];
         ModelGroup.push(object.parent.parent.children);
     }
@@ -218,25 +219,30 @@ function init() {
 
     function mouseDown(event) {
         onTouchMove(event);
+
         if (intersects.length > 0) {
             if (event.button === 0) {
-                //intersects[0].object.visible = false;
-                console.log(intersects[0].object.parent);
-                ShowHide(intersects[0].object);
-                console.log(ModelGroup[0]);
-                for (let i=0;i<ModelGroup[0].length;i++){
-                    if (ModelGroup[0][i]!==intersects[0].object.parent){
-                        console.log(ModelGroup[0][i]);
-                        ModelGroup[0][i].visible = false;
-                    }
-                }
-                camera.position.set(0,3,3);
+                showHideSVG();
             }
             render();
         }
     }
 
-}
+    function ShowHide() {
+        //intersects[0].object.visible = false;
+        console.log(intersects[0].object.parent);
+        allModel(intersects[0].object);
+        console.log(ModelGroup[0]);
+        for (let i = 0; i < ModelGroup[0].length; i++) {
+            if (ModelGroup[0][i] !== intersects[0].object.parent) {
+                console.log(ModelGroup[0][i]);
+                ModelGroup[0][i].visible = false;
+            }
+        }
+        camera.position.set(0, 3, 3);
+    }
+
+
 
 function onWindowResize() {
 
@@ -263,4 +269,20 @@ function animate() {
 function render() {
     //THREE.GLTFLoader.Shaders.update(scene, camera);
     renderer.render(scene, camera);
+}
+
+function showHideSVG() {
+    let deskTop = document.getElementsByClassName('SVG_Rooter');
+    console.log(x.toString());
+    let position_x = x.toString() + "px";
+    let position_y = y.toString() + "px";
+    deskTop[0].style.left = position_x;
+    deskTop[0].style.top = position_y;
+
+    let bt = document.getElementsByClassName('button');
+    bt[0].style.width = '50px';
+    bt[0].onclick = function (){
+        ShowHide();
+    };
+
 }
