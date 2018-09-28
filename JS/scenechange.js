@@ -39,7 +39,7 @@ function init() {
     camera.position.set(5, 6, 7);
     //Light
     light = new THREE.HemisphereLight(0xbbbbff, 0x444422);
-    light = new THREE.DirectionalLight(0xffffff, 1.1);
+    // light = new THREE.DirectionalLight(0xffffff, 1.1);
     light.position.set(10, 20, 15);
     scene.add(light);
 
@@ -68,26 +68,14 @@ function init() {
             //cycle over materials
             model.traverse(child => {
                 //材质赋予
-                // if (child.material) {
-                //     child.material.needsUpdate = true;
-                //     child.material.flatShading = false;
-                //     child.material.transparent = true;
-                // }
-
-                if ( child instanceof THREE.Mesh ) {
-
-                    child.geometry.center();
-                    child.geometry.computeBoundingSphere();
-                    scale = 0.2 * child.geometry.boundingSphere.radius;
-
-                    let phongMaterial = new THREE.MeshPhongMaterial( { color: 0xffffff,
-                        specular: 0x111111, shininess: 5 } );
-                    child.material = phongMaterial;
-                    child.receiveShadow = true;
-                    child.castShadow = true;
-
+                if (child.material) {
+                    child.material.needsUpdate = true;
+                    child.material.flatShading = false;
+                    child.material.transparent = true;
                 }
+
             });
+            console.log(OBJ);
             scene.add(model);
         });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -116,13 +104,14 @@ function init() {
     outlinePass.visibleEdgeColor.set(conf.visibleEdgeColor);
     outlinePass.hiddenEdgeColor.set( conf.hiddenEdgeColor );
     composer.addPass(outlinePass);
+    console.log(scene);
 
 
     //添加光投射器 及 鼠标二维向量 用于捕获鼠标移入物体
     //下次渲染时，通过mouse对于的二维向量判断是否经过指定物体
 
-    renderer.domElement.addEventListener('mousedown', mouseDown, false);
-    renderer.domElement.addEventListener('mousemove', mouseMove, false);
+    //renderer.domElement.addEventListener('mousedown', mouseDown, false);
+    //renderer.domElement.addEventListener('mousemove', mouseMove, false);
 }
 
 function onTouchMove(event) {

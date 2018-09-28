@@ -90,7 +90,6 @@ function init() {
     const height = window.innerHeight;
 
     renderer = new THREE.WebGLRenderer({antialias: true});
-    renderer.shadowMap.enabled = true;
     renderer.setSize(width, height);
     renderer.gammaFactor = 2.2;
     renderer.gammaOutput = true;
@@ -99,26 +98,25 @@ function init() {
 
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0xFFFFFF);
-    camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-    camera.position.set(0, 0, 8);
+    camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+    camera.position.set(100, 100, 800);
 
     controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.minDistance = 5;
-    controls.maxDistance = 20;
-    controls.enablePan = false;
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.25;
+    // controls.minDistance = 5;
+    // controls.maxDistance = 20;
+    // controls.enablePan = false;
+    // controls.enableDamping = true;
+    // controls.dampingFactor = 0.25;
 
     //Light
     light = new THREE.HemisphereLight(0xbbbbff, 0x444422);
-    light = new THREE.DirectionalLight(0xffffff, 1.1);
-    light.position.set(10, 20, 15);
+    light.position.set(100, 200, 150);
     scene.add(light);
 
     // model
 
     var loader = new THREE.GLTFLoader();
-    loader.load('Resources/ExampleModel.gltf', function (object) {
+    loader.load('Resources/Fabrik.gltf', function (object) {
         scene.add(object.scene);
         let scale = 1.0;
         object.traverse(function (child) {
@@ -135,8 +133,8 @@ function init() {
                 });
 
                 child.material = phongMaterial;
-                child.receiveShadow = true;
-                child.castShadow = true;
+                // child.receiveShadow = false;
+                // child.castShadow = false;
 
             }
 
@@ -172,7 +170,7 @@ function init() {
 
     renderer.domElement.addEventListener('mousemove', checkIntersection);
     renderer.domElement.addEventListener('touchmove', checkIntersection);
-    renderer.domElement.addEventListener('mousedown', mouseDown, false);
+    //renderer.domElement.addEventListener('mousedown', mouseDown, false);
 }
     function onTouchMove(event) {
 
@@ -273,7 +271,7 @@ function render() {
 
 function showHideSVG() {
     let deskTop = document.getElementsByClassName('SVG_Rooter');
-    console.log(x.toString());
+    deskTop[0].style.display = 'block';
     let position_x = x.toString() + "px";
     let position_y = y.toString() + "px";
     deskTop[0].style.left = position_x;
@@ -283,6 +281,7 @@ function showHideSVG() {
     bt[0].style.width = '50px';
     bt[0].onclick = function (){
         ShowHide();
+        deskTop[0].style.display = 'none';
     };
 
 }
