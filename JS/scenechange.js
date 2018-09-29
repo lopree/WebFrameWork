@@ -75,7 +75,6 @@ function init() {
                 }
 
             });
-            console.log(OBJ);
             scene.add(model);
         });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -104,7 +103,7 @@ function init() {
     outlinePass.visibleEdgeColor.set(conf.visibleEdgeColor);
     outlinePass.hiddenEdgeColor.set( conf.hiddenEdgeColor );
     composer.addPass(outlinePass);
-    console.log(scene);
+
 
 
     //添加光投射器 及 鼠标二维向量 用于捕获鼠标移入物体

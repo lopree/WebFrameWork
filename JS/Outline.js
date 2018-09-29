@@ -7,6 +7,7 @@ const mouse = new THREE.Vector2();
 let x, y;
 let intersects, ModelGroup;
 let selectedObjects = [];
+let Container;
 
 let composer, effectFXAA, outlinePass;
 const obj3d = new THREE.Object3D();
@@ -88,69 +89,63 @@ function init() {
 
     const width = window.innerWidth;
     const height = window.innerHeight;
-
+    //renderer
     renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.setSize(width, height);
     renderer.gammaFactor = 2.2;
     renderer.gammaOutput = true;
     renderer.setPixelRatio(window.devicePixelRatio);
     document.body.appendChild(renderer.domElement);
-
+    //scene and Camera
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0xFFFFFF);
     camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(100, 100, 800);
-
+    camera.position.set(-0.005, 3, 3);
+    //CameraControls
     controls = new THREE.OrbitControls(camera, renderer.domElement);
-    // controls.minDistance = 5;
-    // controls.maxDistance = 20;
-    // controls.enablePan = false;
-    // controls.enableDamping = true;
-    // controls.dampingFactor = 0.25;
-
     //Light
     light = new THREE.HemisphereLight(0xbbbbff, 0x444422);
     light.position.set(100, 200, 150);
     scene.add(light);
-
     // model
-
     var loader = new THREE.GLTFLoader();
-    loader.load('Resources/Fabrik.gltf', function (object) {
-        scene.add(object.scene);
-        let scale = 1.0;
-        object.traverse(function (child) {
+    THREE.DRACOLoader.setDecoderPath('./draco');
+    loader.setDRACOLoader(new THREE.DRACOLoader());
+    loader.load(
+        'Resources/Fabrik.gltf',
+        function (object) {
+            scene.add(object.scene);
+            let scale = 1.0;
+            object.traverse(function (child) {
 
-            if (child instanceof THREE.Mesh) {
+                if (child instanceof THREE.Mesh) {
 
-                child.geometry.center();
-                child.geometry.computeBoundingSphere();
-                scale = 0.2 * child.geometry.boundingSphere.radius;
+                    child.geometry.center();
+                    child.geometry.computeBoundingSphere();
+                    scale = 0.2 * child.geometry.boundingSphere.radius;
 
-                const phongMaterial = new THREE.MeshPhongMaterial({
-                    color: 0xffffff,
-                    specular: 0x111111, shininess: 5
-                });
+                    const phongMaterial = new THREE.MeshPhongMaterial({
+                        color: 0xffffff,
+                        specular: 0x111111, shininess: 5
+                    });
 
-                child.material = phongMaterial;
-                // child.receiveShadow = false;
-                // child.castShadow = false;
+                    child.material = phongMaterial;
+                    // child.receiveShadow = false;
+                    // child.castShadow = false;
 
-            }
+                }
+
+            });
+
+            object.position.y = 1;
+            object.scale.divideScalar(scale);
+            obj3d.add(object);
 
         });
 
-        object.position.y = 1;
-        object.scale.divideScalar(scale);
-        obj3d.add(object);
-
-    });
-
     scene.add(group);
-
     group.add(obj3d);
     // postprocessing
-
     composer = new THREE.EffectComposer(renderer);
 
     const renderPass = new THREE.RenderPass(scene, camera);
@@ -165,81 +160,79 @@ function init() {
     effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight);
     effectFXAA.renderToScreen = true;
     composer.addPass(effectFXAA);
-
+    //Mouse EventListener
     renderer.domElement.addEventListener('resize', onWindowResize, false);
-
     renderer.domElement.addEventListener('mousemove', checkIntersection);
     renderer.domElement.addEventListener('touchmove', checkIntersection);
-    //renderer.domElement.addEventListener('mousedown', mouseDown, false);
+    renderer.domElement.addEventListener('mousedown', mouseDown, false);
 }
-    function onTouchMove(event) {
+//Get Mouse Position
+function onTouchMove(event) {
 
-        if (event.changedTouches) {
+    if (event.changedTouches) {
 
-            x = event.changedTouches[0].pageX;
-            y = event.changedTouches[0].pageY;
+        x = event.changedTouches[0].pageX;
+        y = event.changedTouches[0].pageY;
 
-        } else {
+    } else {
 
-            x = event.clientX;
-            y = event.clientY;
+        x = event.clientX;
+        y = event.clientY;
 
+    }
+
+    mouse.x = (x / window.innerWidth) * 2 - 1;
+    mouse.y = -(y / window.innerHeight) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera);
+    intersects = raycaster.intersectObjects([scene], true);
+    // checkIntersection();
+}
+
+function addSelectedObject(obj) {
+    selectedObjects = [];
+    Father_Obj02(obj);
+}
+//Get all Object
+function allModel(object) {
+    ModelGroup = [];
+    Father_Obj(object);
+}
+//Mouse Over Event
+function checkIntersection(event) {
+    onTouchMove(event);
+    if (intersects.length > 0) {
+        let selectedObject = intersects[0].object;
+        addSelectedObject(selectedObject);
+        outlinePass.selectedObjects = selectedObjects;
+        let tempName = intersects[0].object.name;
+        Container = new RegExp("Floor").test(tempName);
+    } else {
+        // outlinePass.selectedObjects = [];
+    }
+}
+//Mouse Click Event
+function mouseDown(event) {
+    onTouchMove(event);
+    if (intersects.length > 0) {
+        if (event.button === 0&&!Container) {
+            showHideBtn();
         }
-
-        mouse.x = (x / window.innerWidth) * 2 - 1;
-        mouse.y = -(y / window.innerHeight) * 2 + 1;
-        raycaster.setFromCamera(mouse, camera);
-        intersects = raycaster.intersectObjects([scene], true);
-        // checkIntersection();
+        render();
     }
-
-    function addSelectedObject(object) {
-        selectedObjects = [];
-        selectedObjects.push(object);
-    }
-
-    function allModel(object) {
-        ModelGroup = [];
-        ModelGroup.push(object.parent.parent.children);
-    }
-
-    function checkIntersection(event) {
-        onTouchMove(event);
-        if (intersects.length > 0) {
-            const selectedObject = intersects[0].object;
-            addSelectedObject(selectedObject);
-            outlinePass.selectedObjects = selectedObjects;
-
-        } else {
-            // outlinePass.selectedObjects = [];
+}
+//Button Click Show/Hide Object
+function ShowHideObject() {
+    allModel(intersects[0].object);
+    console.log(ModelGroup[0].children);
+    console.log(selectedObjects[0]);
+    for (let i = 0; i < ModelGroup[0].children.length; i++) {
+        if (ModelGroup[0].children[i].name!== selectedObjects[0].name) {
+            console.log(ModelGroup[0].children[i]);
+            ModelGroup[0].children[i].visible = false;
         }
     }
-
-    function mouseDown(event) {
-        onTouchMove(event);
-
-        if (intersects.length > 0) {
-            if (event.button === 0) {
-                showHideSVG();
-            }
-            render();
-        }
-    }
-
-    function ShowHide() {
-        //intersects[0].object.visible = false;
-        console.log(intersects[0].object.parent);
-        allModel(intersects[0].object);
-        console.log(ModelGroup[0]);
-        for (let i = 0; i < ModelGroup[0].length; i++) {
-            if (ModelGroup[0][i] !== intersects[0].object.parent) {
-                console.log(ModelGroup[0][i]);
-                ModelGroup[0][i].visible = false;
-            }
-        }
-        camera.position.set(0, 3, 3);
-    }
-
+    camera.position.set(0, 3, 3);
+}
 
 
 function onWindowResize() {
@@ -265,11 +258,11 @@ function animate() {
 }
 
 function render() {
-    //THREE.GLTFLoader.Shaders.update(scene, camera);
     renderer.render(scene, camera);
-}
 
-function showHideSVG() {
+}
+//Mouse Click Show/Hide Button
+function showHideBtn() {
     let deskTop = document.getElementsByClassName('SVG_Rooter');
     deskTop[0].style.display = 'block';
     let position_x = x.toString() + "px";
@@ -279,9 +272,42 @@ function showHideSVG() {
 
     let bt = document.getElementsByClassName('button');
     bt[0].style.width = '50px';
-    bt[0].onclick = function (){
-        ShowHide();
+    bt[0].onclick = function () {
+        ShowHideObject();
         deskTop[0].style.display = 'none';
     };
+}
 
+function Father_Obj(object){
+    let tempObj = object.parent;
+    let tempObjName = tempObj.name;
+    let tempContainer = new RegExp("Object").test(tempObjName);
+    if(tempContainer){
+        ModelGroup.push(tempObj.parent);
+        // for(let i = 0;i<ModelGroup[0].children.length;i++){
+        //     let childName = ModelGroup[0].children[i].name;
+        //     let childContainer = new RegExp("Object").test(childName);
+        //     if(!childContainer){
+        //         ModelGroup[0].children.splice(i,1);
+        //         }
+        // }
+    }
+    else {
+        Father_Obj(tempObj);
+    }
+}
+
+function Father_Obj02(object){
+    let tempObj02 = object.parent;
+    let tempObjName02 = tempObj02.name;
+    let tempContainer02 = new RegExp("Object").test(tempObjName02);
+    if(tempContainer02){
+        selectedObjects.push(tempObj02);
+    }
+    if (tempObjName02 === "Scene") {
+        return;
+    }
+    else {
+        Father_Obj02(tempObj02);
+    }
 }
