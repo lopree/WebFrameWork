@@ -71,6 +71,14 @@
     left:10%;
 }
 
+.dyc_SVG{
+    display: block;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    position: absolute;
+}
+
 
 
 

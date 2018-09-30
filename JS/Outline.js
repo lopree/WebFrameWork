@@ -22,71 +22,11 @@ const params = {
     usePatternTexture: false
 };
 
-// Init gui
-
-const gui = new dat.GUI({width: 300});
-
-gui.add(params, 'edgeStrength', 0.01, 10).onChange(function (value) {
-
-    outlinePass.edgeStrength = Number(value);
-
-});
-
-gui.add(params, 'edgeGlow', 0.0, 1).onChange(function (value) {
-
-    outlinePass.edgeGlow = Number(value);
-
-});
-
-gui.add(params, 'edgeThickness', 1, 4).onChange(function (value) {
-
-    outlinePass.edgeThickness = Number(value);
-
-});
-
-gui.add(params, 'pulsePeriod', 0.0, 5).onChange(function (value) {
-
-    outlinePass.pulsePeriod = Number(value);
-
-});
-
-gui.add(params, 'usePatternTexture').onChange(function (value) {
-
-    outlinePass.usePatternTexture = value;
-
-});
-
-const Configuration = function () {
-
-    this.visibleEdgeColor = '#ffffff';
-    this.hiddenEdgeColor = '#76ccc9';
-
-};
-
-const conf = new Configuration();
-
-const controllerVisible = gui.addColor(conf, 'visibleEdgeColor').onChange(function (value) {
-
-    outlinePass.visibleEdgeColor.set(value);
-
-});
-
-const controllerHidden = gui.addColor(conf, 'hiddenEdgeColor').onChange(function (value) {
-
-    outlinePass.hiddenEdgeColor.set(value);
-
-});
 
 init();
 animate();
-
+DrawlSVG();
 function init() {
-
-    container = document.createElement('div');
-    container.setAttribute("id", "ModelDiv");
-
-    document.body.appendChild(container);
-
     const width = window.innerWidth;
     const height = window.innerHeight;
     //renderer
@@ -102,13 +42,14 @@ function init() {
     camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
     camera.position.set(-0.005, 3, 3);
     //CameraControls
-    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    // controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls = new THREE.OrbitControls(camera);
     //Light
     light = new THREE.HemisphereLight(0xbbbbff, 0x444422);
     light.position.set(100, 200, 150);
     scene.add(light);
     // model
-    var loader = new THREE.GLTFLoader();
+    let loader = new THREE.GLTFLoader();
     THREE.DRACOLoader.setDecoderPath('./draco');
     loader.setDRACOLoader(new THREE.DRACOLoader());
     loader.load(
@@ -130,8 +71,6 @@ function init() {
                     });
 
                     child.material = phongMaterial;
-                    // child.receiveShadow = false;
-                    // child.castShadow = false;
 
                 }
 
@@ -153,8 +92,15 @@ function init() {
 
     outlinePass = new THREE.OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight),
         scene, camera);
+    //高光参数
+    outlinePass.edgeStrength = params.edgeStrength;
+    outlinePass.edgeGlow= params.edgeGlow;
+    outlinePass.edgeThickness= params.edgeThickness;
+    outlinePass.pulsePeriod = params.pulsePeriod;
+    outlinePass.usePatternTexture = params.usePatternTexture;
+    outlinePass.visibleEdgeColor.set("#ffd129");
+    outlinePass.hiddenEdgeColor.set('#76ccc9');
     composer.addPass(outlinePass);
-
 
     effectFXAA = new THREE.ShaderPass(THREE.FXAAShader);
     effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight);
@@ -193,9 +139,9 @@ function addSelectedObject(obj) {
     Father_Obj02(obj);
 }
 //Get all Object
-function allModel(object) {
+function allModel() {
     ModelGroup = [];
-    Father_Obj(object);
+    ModelGroup = scene.children[2].children;
 }
 //Mouse Over Event
 function checkIntersection(event) {
@@ -204,6 +150,7 @@ function checkIntersection(event) {
         let selectedObject = intersects[0].object;
         addSelectedObject(selectedObject);
         outlinePass.selectedObjects = selectedObjects;
+        //when click not Object don't show Button
         let tempName = intersects[0].object.name;
         Container = new RegExp("Floor").test(tempName);
     } else {
@@ -213,22 +160,25 @@ function checkIntersection(event) {
 //Mouse Click Event
 function mouseDown(event) {
     onTouchMove(event);
+    console.log(x,y);
     if (intersects.length > 0) {
         if (event.button === 0&&!Container) {
             showHideBtn();
+            console.log(selectedObjects[0].position);
+            transToScreenCoord(selectedObjects[0]);
         }
         render();
     }
 }
 //Button Click Show/Hide Object
 function ShowHideObject() {
-    allModel(intersects[0].object);
-    console.log(ModelGroup[0].children);
-    console.log(selectedObjects[0]);
-    for (let i = 0; i < ModelGroup[0].children.length; i++) {
-        if (ModelGroup[0].children[i].name!== selectedObjects[0].name) {
-            console.log(ModelGroup[0].children[i]);
-            ModelGroup[0].children[i].visible = false;
+    allModel();
+    for (let i = 0; i < ModelGroup.length; i++) {
+        let tempObj = ModelGroup[i];
+        let tempObjName = tempObj.name;
+        let tempContainer = new RegExp("Object").test(tempObjName);
+        if (ModelGroup[i].name!== selectedObjects[0].name&&tempContainer) {
+            ModelGroup[i].visible = false;
         }
     }
     camera.position.set(0, 3, 3);
@@ -278,25 +228,6 @@ function showHideBtn() {
     };
 }
 
-function Father_Obj(object){
-    let tempObj = object.parent;
-    let tempObjName = tempObj.name;
-    let tempContainer = new RegExp("Object").test(tempObjName);
-    if(tempContainer){
-        ModelGroup.push(tempObj.parent);
-        // for(let i = 0;i<ModelGroup[0].children.length;i++){
-        //     let childName = ModelGroup[0].children[i].name;
-        //     let childContainer = new RegExp("Object").test(childName);
-        //     if(!childContainer){
-        //         ModelGroup[0].children.splice(i,1);
-        //         }
-        // }
-    }
-    else {
-        Father_Obj(tempObj);
-    }
-}
-
 function Father_Obj02(object){
     let tempObj02 = object.parent;
     let tempObjName02 = tempObj02.name;
@@ -311,3 +242,25 @@ function Father_Obj02(object){
         Father_Obj02(tempObj02);
     }
 }
+//trans Object 3D_Coord to ScreenCoord
+function transToScreenCoord(obj) {
+    //创建一个3D坐标
+    let vector = new THREE.Vector3();
+    //获取模型
+    vector = vector.setFromMatrixPosition(obj.matrixWorld).project(camera);
+    let halfWidth = window.innerWidth / 2;
+    let halfHeight = window.innerHeight / 2;
+    console.log(vector.x * halfWidth + halfWidth);
+    let result = {
+        x: Math.round(vector.x * halfWidth + halfWidth),
+        y: Math.round(-vector.y * halfHeight + halfHeight)
+    };
+    //2D坐标
+    console.log(result);
+}
+
+//Drawl SVG by Coord
+function DrawlSVG() {
+
+}
+
