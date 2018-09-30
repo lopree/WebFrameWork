@@ -58,28 +58,20 @@ function init() {
             scene.add(object.scene);
             let scale = 1.0;
             object.traverse(function (child) {
-
                 if (child instanceof THREE.Mesh) {
-
                     child.geometry.center();
                     child.geometry.computeBoundingSphere();
                     scale = 0.2 * child.geometry.boundingSphere.radius;
-
                     const phongMaterial = new THREE.MeshPhongMaterial({
                         color: 0xffffff,
                         specular: 0x111111, shininess: 5
                     });
-
                     child.material = phongMaterial;
-
                 }
-
             });
-
             object.position.y = 1;
             object.scale.divideScalar(scale);
             obj3d.add(object);
-
         });
 
     scene.add(group);
@@ -114,19 +106,13 @@ function init() {
 }
 //Get Mouse Position
 function onTouchMove(event) {
-
     if (event.changedTouches) {
-
         x = event.changedTouches[0].pageX;
         y = event.changedTouches[0].pageY;
-
     } else {
-
         x = event.clientX;
         y = event.clientY;
-
     }
-
     mouse.x = (x / window.innerWidth) * 2 - 1;
     mouse.y = -(y / window.innerHeight) * 2 + 1;
     raycaster.setFromCamera(mouse, camera);
@@ -258,7 +244,6 @@ function transToScreenCoord(obj) {
     //2D坐标
     console.log(result);
 }
-
 //Drawl SVG by Coord
 function DrawlSVG() {
 
