@@ -1,12 +1,31 @@
-let date = [3,14,6];
 const CreatedDiv = d3.select('body').append('div')
     .attr('class', 'dyc_SVG');
 
-CreatedDiv.append('svg')
-    .attr("width",window.innerWidth)
-    .attr("height",window.innerHeight)
-    .append('rect')
-    .attr('width',50)
-    .attr('height',50)
-    .attr('x',10)
-    .attr('y',10);
+const  div_nodes_SVG = CreatedDiv.nodes()[0];
+
+let url = "Resources/我的主页.svg";
+
+function loadSVG(xmlAdr) {
+    console.log(div_nodes_SVG);
+    return new Promise((resolve) => {
+        const importSVG_Home = d3.xml(xmlAdr).then(xml=>{
+            div_nodes_SVG.appendChild(xml.documentElement);
+            //console.log("load SVG Done!");
+        });
+        //console.log("Start load SVG");
+        resolve(importSVG_Home);
+    })
+}
+
+async function CreatSVG(SVGAdr) {
+    //console.log("Start Script");
+    const SVG_Home = await loadSVG(SVGAdr);
+    let Get_SVG_Home = d3.select('.icon_home').nodes()[0];
+    Get_SVG_Home.style.width = '50';
+    Get_SVG_Home.style.height = '50';
+    //console.log("Catch SVG");
+    return SVG_Home;
+}
+
+CreatSVG(url);
+

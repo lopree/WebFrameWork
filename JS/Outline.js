@@ -26,6 +26,7 @@ const params = {
 init();
 animate();
 DrawlSVG();
+SVG_ClickEvent();
 function init() {
     const width = window.innerWidth;
     const height = window.innerHeight;
@@ -248,4 +249,12 @@ function transToScreenCoord(obj) {
 function DrawlSVG() {
 
 }
+
+//SVG click event
+function SVG_ClickEvent(){
+    console.log(1);
+    let svg_home = document.getElementsByClassName('icon_home')[0];
+    console.log(svg_home);
+}
+
 

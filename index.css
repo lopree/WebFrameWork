@@ -73,9 +73,10 @@
 
 .dyc_SVG{
     display: block;
+    background-color: white;
     top: 0;
     left: 0;
-    pointer-events: none;
+    /*pointer-events: none;*/
     position: absolute;
 }
 
