@@ -25,8 +25,9 @@ const params = {
 
 init();
 animate();
-DrawlSVG();
-SVG_ClickEvent();
+
+SVG_ClickEvent(url);
+
 function init() {
     const width = window.innerWidth;
     const height = window.innerHeight;
@@ -44,7 +45,7 @@ function init() {
     camera.position.set(-0.005, 3, 3);
     //CameraControls
     // controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls = new THREE.OrbitControls(camera);
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
     //Light
     light = new THREE.HemisphereLight(0xbbbbff, 0x444422);
     light.position.set(100, 200, 150);
@@ -87,8 +88,8 @@ function init() {
         scene, camera);
     //高光参数
     outlinePass.edgeStrength = params.edgeStrength;
-    outlinePass.edgeGlow= params.edgeGlow;
-    outlinePass.edgeThickness= params.edgeThickness;
+    outlinePass.edgeGlow = params.edgeGlow;
+    outlinePass.edgeThickness = params.edgeThickness;
     outlinePass.pulsePeriod = params.pulsePeriod;
     outlinePass.usePatternTexture = params.usePatternTexture;
     outlinePass.visibleEdgeColor.set("#ffd129");
@@ -105,6 +106,7 @@ function init() {
     renderer.domElement.addEventListener('touchmove', checkIntersection);
     renderer.domElement.addEventListener('mousedown', mouseDown, false);
 }
+
 //Get Mouse Position
 function onTouchMove(event) {
     if (event.changedTouches) {
@@ -125,11 +127,13 @@ function addSelectedObject(obj) {
     selectedObjects = [];
     Father_Obj02(obj);
 }
+
 //Get all Object
 function allModel() {
     ModelGroup = [];
     ModelGroup = scene.children[2].children;
 }
+
 //Mouse Over Event
 function checkIntersection(event) {
     onTouchMove(event);
@@ -144,19 +148,19 @@ function checkIntersection(event) {
         // outlinePass.selectedObjects = [];
     }
 }
+
 //Mouse Click Event
 function mouseDown(event) {
     onTouchMove(event);
-    console.log(x,y);
     if (intersects.length > 0) {
-        if (event.button === 0&&!Container) {
+        if (event.button === 0 && !Container) {
             showHideBtn();
-            console.log(selectedObjects[0].position);
-            transToScreenCoord(selectedObjects[0]);
+            DrawlSVG();
         }
         render();
     }
 }
+
 //Button Click Show/Hide Object
 function ShowHideObject() {
     allModel();
@@ -164,7 +168,7 @@ function ShowHideObject() {
         let tempObj = ModelGroup[i];
         let tempObjName = tempObj.name;
         let tempContainer = new RegExp("Object").test(tempObjName);
-        if (ModelGroup[i].name!== selectedObjects[0].name&&tempContainer) {
+        if (ModelGroup[i].name !== selectedObjects[0].name && tempContainer) {
             ModelGroup[i].visible = false;
         }
     }
@@ -198,6 +202,7 @@ function render() {
     renderer.render(scene, camera);
 
 }
+
 //Mouse Click Show/Hide Button
 function showHideBtn() {
     let deskTop = document.getElementsByClassName('SVG_Rooter');
@@ -215,11 +220,11 @@ function showHideBtn() {
     };
 }
 
-function Father_Obj02(object){
+function Father_Obj02(object) {
     let tempObj02 = object.parent;
     let tempObjName02 = tempObj02.name;
     let tempContainer02 = new RegExp("Object").test(tempObjName02);
-    if(tempContainer02){
+    if (tempContainer02) {
         selectedObjects.push(tempObj02);
     }
     if (tempObjName02 === "Scene") {
@@ -229,6 +234,7 @@ function Father_Obj02(object){
         Father_Obj02(tempObj02);
     }
 }
+
 //trans Object 3D_Coord to ScreenCoord
 function transToScreenCoord(obj) {
     //创建一个3D坐标
@@ -237,7 +243,7 @@ function transToScreenCoord(obj) {
     vector = vector.setFromMatrixPosition(obj.matrixWorld).project(camera);
     let halfWidth = window.innerWidth / 2;
     let halfHeight = window.innerHeight / 2;
-    console.log(vector.x * halfWidth + halfWidth);
+    //console.log(vector.x * halfWidth + halfWidth);
     let result = {
         x: Math.round(vector.x * halfWidth + halfWidth),
         y: Math.round(-vector.y * halfHeight + halfHeight)
@@ -245,16 +251,31 @@ function transToScreenCoord(obj) {
     //2D坐标
     console.log(result);
 }
+
 //Drawl SVG by Coord
 function DrawlSVG() {
-
+    transToScreenCoord(selectedObjects[0]);
+    let dyc_SVG = d3.select("#dyc_mark").attr("x",result.x);
+    let line = dyc_SVG.append("line")
+        .attr("x1", 5)
+        .attr("y1", 5)
+        .attr("x2", 50)
+        .attr("y2", 50)
+        .attr("stroke-width", 2)
+        .attr("stroke", "black");
 }
 
 //SVG click event
-function SVG_ClickEvent(){
-    console.log(1);
-    let svg_home = document.getElementsByClassName('icon_home')[0];
-    console.log(svg_home);
+async function SVG_ClickEvent(SVGAdr) {
+    const wait_SVGDone = await CreatSVG(SVGAdr);
+    //ICON_HOME Click Event to Show All Model
+    let svg_path = d3.selectAll('path');
+    svg_path.on('click', function () {
+        allModel();
+        for (let i = 0; i < ModelGroup.length; i++) {
+            ModelGroup[i].visible = true;
+        }
+    });
 }
 
 

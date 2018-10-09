@@ -79,6 +79,9 @@
     /*pointer-events: none;*/
     position: absolute;
 }
+#dyc_mark{
+    position: absolute;
+}
 
 
 
