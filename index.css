@@ -80,7 +80,30 @@
     position: absolute;
 }
 #dyc_mark{
+    left:100px;
+    top: 200px;
     position: absolute;
+}
+.iframeDiv{
+    display: none;
+    background: aqua;
+    width: 500px;
+    height: 500px;
+    top: 0;
+    left: 0;
+    position: absolute;
+}
+.button_CloseTable{
+    position: absolute;
+    width: 150px;
+    right:0;
+    z-index: 1;
+}
+#viewer {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+
 }
 
 
